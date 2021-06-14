@@ -8,13 +8,14 @@ const servers = express();
 servers.use(cors());
 
 const PORT = 3020;
-
+// http://localhost:3020/
 servers.get('/', (req, res) => {
     res.send('home route')
 })
 
-
-servers.get('/Weathertoday', (req, res) => {
+// http://localhost:3020/dataOfWeather?dataOfcity=city
+servers.get('/dataOfWeather', (req, res) => {
+    // let city=req.query.dataOfcity
     let city = req.query.dataOfcity
 
     if (weather.city_name.toLocaleLowerCase() === city.toLocaleLowerCase()) {
