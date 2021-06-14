@@ -1,41 +1,43 @@
-'use strict'
-require('dotenv').config();
 const express = require('express');
-const weather = require('./data/weather.json');
+const server = express(); //I can use the express methods using server variable
+const WeatherData = require('./data/weather.json');
 const cors = require('cors');
-
-const servers = express();
-servers.use(cors());
+server.use(cors()); //make my server opened for everyone
 
 const PORT = 3020;
-// http://localhost:3020/
-servers.get('/', (req, res) => {
-    res.send('home route')
+
+
+//localhost:3010/
+server.get('/', (req, res) => {
+    res.send('Welcome From Abdelmajed');
 })
 
-// http://localhost:3020/dataOfWeather?dataOfcity=city
-servers.get('/dataOfWeather', (req, res) => {
-    // let city=req.query.dataOfcity
-    let city = req.query.dataOfcity
+//localhost:3010/getPokeNames
+server.get('/getdates', (req, res) => {
+    let dates = WeatherData.data.map(item => {
+        return item.valid_date;
 
-    if (weather.city_name.toLocaleLowerCase() === city.toLocaleLowerCase()) {
+    })
+    res.send(dates);
+})
 
-        let result = weather.data.map(item => {
-
-            return {
-                description: `low of ${item.low_temp}, high of ${item.high_temp} with ${item.weather.description}`,
-                date: `${item.valid_date}`
-            }
-
-        })
-
-        res.send(result)
-    } else {
-        res.send('please search about sydney to show the result of weather')
-    }
+//http://localhost:3020/getDatepra?dates=2021-04-07
+server.get('/getDatepra', (req, res) => {
+    let getDatepra = req.query.dates;
+    let dateItem = WeatherData.data.find(item => {
+        if (item.valid_date == getDatepra)
+            return item;
+    })
+    res.send(dateItem);
 
 })
 
-servers.listen(PORT, () => {
+
+//localhost:3010 .....
+server.get('*', (req, res) => {
+    res.status(404).send('sorry, this page not found');
+})
+
+server.listen(PORT, () => {
     console.log(`Listening on PORT ${PORT}`);
 })
