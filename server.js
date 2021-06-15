@@ -1,42 +1,56 @@
+'use strict';
+
+require('dotenv').config();
 const express = require('express');
-const server = express(); //I can use the express methods using server variable
-const WeatherData = require('./data/weather.json');
 const cors = require('cors');
-server.use(cors()); //make my server opened for everyone
+const axios = require('axios');
+
+const server = express();
 
 const PORT = process.env.PORT;
 
+server.use(cors()); //my server can get any req from any clinet
 
-//localhost:3010/
-server.get('/', (req, res) => {
-    res.send('Welcome From Abdelmajed');
-})
+//localhost:3001/
+server.get('/', homeHandler)
+server.get('/weather', weatherhandler)
 
-//localhost:3010/getPokeNames
-server.get('/getdates', (req, res) => {
-    let dates = WeatherData.data.map(item => {
-        return item.valid_date;
 
+
+//localhost:3001/
+function homeHandler(req, res) {
+    res.send('Home route');
+}
+//https://api.weatherbit.io/v2.0/current?lat=35.7796&lon=-78.6382&key=API_KEY&include=minutely
+//localhost:3001/photo?searchQuery=book
+function weatherhandler(req, res) {
+    let lon = req.query.lon;
+    let lat = req.query.lat;
+
+    const key = process.env.KEY;
+    let url = `//https://api.weatherbit.io/v2.0/current?lat=${lat}&lon=${lon}&key=${key}&include=minutely`;
+
+
+
+    axios.get(url).then(apiResult => {
+        console.log('inside promise');
+        const weatherArray = apiResult.data.results.map(weatherItem => {
+            return new Weather(weatherItem);
+        })
+        res.send(weatherArray);
     })
-    res.send(dates);
-})
+        .catch(err => {
+            res.send(`there is an error in getting the data => ${err}`);
+        })
 
-//http://localhost:3020/getDatepra?dates=2021-04-07
-server.get('/getDatepra', (req, res) => {
-    let getDatepra = req.query.dates;
-    let dateItem = WeatherData.data.find(item => {
-        if (item.valid_date == getDatepra)
-            return item;
-    })
-    res.send(dateItem);
+}
 
-})
-
-
-//localhost:3010 .....
-server.get('*', (req, res) => {
-    res.status(404).send('sorry, this page not found');
-})
+class Weather {
+    constructor(item) {
+        this.imgUrl = item.urls.raw;
+        this.numLikes = item.likes;
+    }
+}
 
 server.listen(PORT, () => {
     console.log(`Listening on PORT ${PORT}`);
