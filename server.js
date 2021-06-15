@@ -21,12 +21,12 @@ server.get('/weather', weatherhandler)
 function homeHandler(req, res) {
     res.send('Home route');
 }
-//https://api.weatherbit.io/v2.0/current?lat=35.7796&lon=-78.6382&key=API_KEY&include=minutely
-//localhost:3001/photo?searchQuery=book
+
+
 function weatherhandler(req, res) {
     let lon = req.query.lon;
     let lat = req.query.lat;
-
+    console.log(lon, lat);
     const key = process.env.KEY;
     let url = `//https://api.weatherbit.io/v2.0/current?lat=${lat}&lon=${lon}&key=${key}&include=minutely`;
 
