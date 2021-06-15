@@ -4,7 +4,7 @@ const WeatherData = require('./data/weather.json');
 const cors = require('cors');
 server.use(cors()); //make my server opened for everyone
 
-const PORT = 3020;
+const PORT = process.env.PORT;
 
 
 //localhost:3010/
