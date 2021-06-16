@@ -1,43 +1,42 @@
+'use strict';
+
+require('dotenv').config();
 const express = require('express');
-const server = express(); //I can use the express methods using server variable
-const WeatherData = require('./data/weather.json');
 const cors = require('cors');
-server.use(cors()); //make my server opened for everyone
+const weather = require('./data/weather.json');
 
-const PORT = process.env.PORT;
+const app = express();
+app.use(cors());
 
+const PORT = process.env.PORT || 3002;
 
-//localhost:3010/
-server.get('/', (req, res) => {
-    res.send('Welcome From Abdelmajed');
-})
+//localhost:3001/weather?searchQuery=amman
+app.get('/weather', handleWeather);
+app.use('*', (request, response) => response.status(404).send('page not found'));
 
-//localhost:3010/getPokeNames
-server.get('/getdates', (req, res) => {
-    let dates = WeatherData.data.map(item => {
-        return item.valid_date;
+function handleWeather(request, response) {
+    let searchQuery = request.query.searchQuery;
+    const city = weather.find(city => city.city_name.toLowerCase() === searchQuery.toLowerCase());
+    if (city != undefined) {
+        const weatherArray = city.data.map(day => new Weather(day));
+        response.status(200).send(weatherArray);
+    }
+    else {
+        errorHandler(response);
+    }
+}
 
-    })
-    res.send(dates);
-})
-
-//http://localhost:3020/getDatepra?dates=2021-04-07
-server.get('/getDatepra', (req, res) => {
-    let getDatepra = req.query.dates;
-    let dateItem = WeatherData.data.find(item => {
-        if (item.valid_date == getDatepra)
-            return item;
-    })
-    res.send(dateItem);
-
-})
+function errorHandler(response) {
+    response.status(500).send('something went wrong');
+}
 
 
-//localhost:3010 .....
-server.get('*', (req, res) => {
-    res.status(404).send('sorry, this page not found');
-})
+class Weather {
+    constructor(dataForWeather) {
+        this.descriptionWeather = dataForWeather.weather.description;
+        this.dateWeather = dataForWeather.valid_date;
+    }
+}
 
-server.listen(PORT, () => {
-    console.log(`Listening on PORT ${PORT}`);
-})
+
+app.listen(PORT, () => console.log(`listening on ${PORT}`))
