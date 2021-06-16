@@ -1,42 +1,30 @@
 'use strict';
-
 require('dotenv').config();
 const express = require('express');
+// const weatherData = require('./data/weather.json');
 const cors = require('cors');
-const weather = require('./data/weather.json');
+const axios = require('axios');
 
-const app = express();
-app.use(cors());
+const server = express();
+server.use(cors());
 
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT;
 
-//localhost:3001/weather?searchQuery=amman
-app.get('/weather', handleWeather);
-app.use('*', (request, response) => response.status(404).send('page not found'));
+//http://localhost:9000/movie?city=Amman
+const movieHandler = require('./Modules/Movies.js');
+server.get('/movie', movieHandler);
 
-function handleWeather(request, response) {
-    let searchQuery = request.query.searchQuery;
-    const city = weather.find(city => city.city_name.toLowerCase() === searchQuery.toLowerCase());
-    if (city != undefined) {
-        const weatherArray = city.data.map(day => new Weather(day));
-        response.status(200).send(weatherArray);
-    }
-    else {
-        errorHandler(response);
-    }
-}
+//http://localhost:9000/weather?city=Amman
+const weatherHandler = require('./Modules/Weather.js');
+server.get('/weather', weatherHandler);
 
-function errorHandler(response) {
-    response.status(500).send('something went wrong');
-}
+server.get('/', (req, res) => {
+    res.send('hi');
+});
+server.get('*', (req, res) => {
+    res.send('Not found');
+});
 
-
-class Weather {
-    constructor(dataForWeather) {
-        this.descriptionWeather = dataForWeather.weather.description;
-        this.dateWeather = dataForWeather.valid_date;
-    }
-}
-
-
-app.listen(PORT, () => console.log(`listening on ${PORT}`))
+server.listen(PORT, () => {
+    console.log(`Listening to PORT ${PORT}`);
+})
