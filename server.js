@@ -3,55 +3,37 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const axios = require('axios');
+const weather = require('./data/weather.json');
 
-const server = express();
+const app = express();
+app.use(cors());
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3002;
 
-server.use(cors()); //my server can get any req from any clinet
+//localhost:3001/weather?searchQuery=amman
+app.get('/weather', handleWeather);
+app.use('*', (request, response) => response.status(404).send('page not found'));
 
-//localhost:3001/
-server.get('/', homeHandler)
-server.get('/weather', weatherhandler)
-
-
-
-//localhost:3001/
-function homeHandler(req, res) {
-    res.send('Home route');
-}
-
-
-function weatherhandler(req, res) {
-    let lon = req.query.lon;
-    let lat = req.query.lat;
-    console.log(lon, lat);
-    const key = process.env.KEY;
-    let url = `//https://api.weatherbit.io/v2.0/current?lat=${lat}&lon=${lon}&key=${key}&include=minutely`;
-
-
-
-    axios.get(url).then(apiResult => {
-        console.log('inside promise');
-        const weatherArray = apiResult.data.results.map(weatherItem => {
-            return new Weather(weatherItem);
-        })
-        res.send(weatherArray);
-    })
-        .catch(err => {
-            res.send(`there is an error in getting the data => ${err}`);
-        })
-
-}
-
-class Weather {
-    constructor(item) {
-        this.imgUrl = item.urls.raw;
-        this.numLikes = item.likes;
+function handleWeather(request, response) {
+    let searchQuery = request.query.searchQuery;
+    const city = weather.find(city => city.city_name.toLowerCase() === searchQuery.toLowerCase());
+    if (city != undefined) {
+        const weatherArray = city.data.map(day => new Forecast(day));
+        response.status(200).send(weatherArray);
+    }
+    else {
+        errorHandler(response);
     }
 }
 
-server.listen(PORT, () => {
-    console.log(`Listening on PORT ${PORT}`);
-})
+function errorHandler(response) {
+    response.status(500).send('something went wrong');
+}
+
+
+function Forecast(day) {
+    this.date = day.valid_date
+    this.description = day.weather.description
+}
+
+app.listen(PORT, () => console.log(`listening on ${PORT}`))
