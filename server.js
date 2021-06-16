@@ -18,7 +18,7 @@ function handleWeather(request, response) {
     let searchQuery = request.query.searchQuery;
     const city = weather.find(city => city.city_name.toLowerCase() === searchQuery.toLowerCase());
     if (city != undefined) {
-        const weatherArray = city.data.map(day => new Forecast(day));
+        const weatherArray = city.data.map(day => new Weather(day));
         response.status(200).send(weatherArray);
     }
     else {
@@ -31,9 +31,12 @@ function errorHandler(response) {
 }
 
 
-function Forecast(day) {
-    this.date = day.valid_date
-    this.description = day.weather.description
+class Weather {
+    constructor(dataForWeather) {
+        this.descriptionWeather = dataForWeather.weather.description;
+        this.dateWeather = dataForWeather.valid_date;
+    }
 }
+
 
 app.listen(PORT, () => console.log(`listening on ${PORT}`))
